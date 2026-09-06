@@ -1,0 +1,599 @@
+<title>The Adulting Exam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e7dcc0;
+    --paper-card:#f7f1e2;
+    --ink:#1c2431;
+    --ink-soft:#4c5872;
+    --stamp:#a8352a;
+    --stamp-soft:#a8352a1a;
+    --mustard:#c1932c;
+    --mustard-ink:#3a2d0f;
+    --line:#c7b98d;
+    --cleared:#3f6b4a;
+    --cleared-soft:#3f6b4a1f;
+    --shadow: 0 1px 0 rgba(28,36,49,.06);
+    --focus: #2f6fb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#12151c;
+      --paper-card:#1d222c;
+      --ink:#ece4d0;
+      --ink-soft:#a3aabb;
+      --stamp:#e2645a;
+      --stamp-soft:#e2645a26;
+      --mustard:#e2b654;
+      --mustard-ink:#2a2110;
+      --line:#333b49;
+      --cleared:#7cae87;
+      --cleared-soft:#7cae8726;
+      --shadow: 0 1px 0 rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#12151c;
+    --paper-card:#1d222c;
+    --ink:#ece4d0;
+    --ink-soft:#a3aabb;
+    --stamp:#e2645a;
+    --stamp-soft:#e2645a26;
+    --mustard:#e2b654;
+    --mustard-ink:#2a2110;
+    --line:#333b49;
+    --cleared:#7cae87;
+    --cleared-soft:#7cae8726;
+    --shadow: 0 1px 0 rgba(0,0,0,.3);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    min-height:100vh;
+  }
+  ::selection{ background:var(--mustard); color:var(--mustard-ink); }
+
+  .code{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:20px 16px 64px;
+  }
+
+  header.masthead{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    padding-bottom:18px;
+    margin-bottom:22px;
+    border-bottom:3px double var(--line);
+  }
+  .masthead-title{ display:flex; flex-direction:column; gap:4px; }
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  h1{
+    font-family:"Big Shoulders Display", ui-sans-serif, sans-serif;
+    font-weight:800;
+    font-size:clamp(2.1rem, 5.5vw, 3.4rem);
+    line-height:.92;
+    margin:0;
+    letter-spacing:.01em;
+    text-wrap:balance;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:.95rem;
+    max-width:52ch;
+  }
+  .scoreboard{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .score{
+    font-family:"IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size:1.5rem;
+    font-weight:600;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 14px;
+    box-shadow:var(--shadow);
+  }
+  .score span{ color:var(--ink-soft); font-size:.62em; display:block; letter-spacing:.1em; text-transform:uppercase; font-weight:500; margin-bottom:2px;}
+  .reset-btn{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.78rem;
+    letter-spacing:.05em;
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    border-radius:8px;
+    padding:9px 12px;
+    cursor:pointer;
+  }
+  .reset-btn:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .reset-btn:focus-visible, .card:focus-visible, .modal-close:focus-visible, .answer-btn:focus-visible{
+    outline:3px solid var(--focus); outline-offset:2px;
+  }
+
+  .board{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap:14px;
+  }
+
+  .card{
+    aspect-ratio: 3 / 4;
+    perspective:1400px;
+    cursor:pointer;
+    border-radius:12px;
+  }
+  .card-inner{
+    position:relative;
+    width:100%; height:100%;
+    transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.2,.7,.3,1);
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+  @media (prefers-reduced-motion: reduce){
+    .card-inner{ transition:none; }
+  }
+
+  .face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--paper-card);
+    box-shadow: 0 2px 6px rgba(20,20,10,.12);
+    display:flex; flex-direction:column;
+    padding:11px;
+  }
+  .face-back{ }
+  .face-front{
+    transform:rotateY(180deg);
+    background:var(--paper-card);
+    border-color: var(--ink-soft);
+  }
+
+  .face-row{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .tag{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.62rem;
+    letter-spacing:.08em;
+    background:var(--mustard);
+    color:var(--mustard-ink);
+    padding:2px 6px;
+    border-radius:4px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .item-no{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    color:var(--ink-soft);
+  }
+
+  .face-back .glyph{
+    flex:1;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Big Shoulders Display", sans-serif;
+    font-weight:800;
+    font-size:2.6rem;
+    color:var(--ink-soft);
+    opacity:.55;
+    position:relative;
+  }
+  .stamp-cleared{
+    position:absolute;
+    border:3px solid var(--cleared);
+    color:var(--cleared);
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:700;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    padding:4px 8px;
+    border-radius:6px;
+    transform:rotate(-9deg);
+    background:var(--cleared-soft);
+    opacity:1;
+  }
+  .face-back.is-cleared .glyph .qmark{ opacity:.25; }
+  .perforation{
+    border-top:1px dashed var(--line);
+    padding-top:6px;
+    text-align:center;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.56rem;
+    letter-spacing:.12em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+
+  .face-front .qlabel{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.62rem;
+    letter-spacing:.1em;
+    color:var(--stamp);
+    text-transform:uppercase;
+    margin:8px 0 4px;
+  }
+  .face-front .qtext{
+    flex:1;
+    font-size:clamp(.82rem, 1.6vw, .98rem);
+    line-height:1.32;
+    font-weight:500;
+    overflow-y:auto;
+  }
+  .answer-btn{
+    margin-top:8px;
+    align-self:stretch;
+    background:var(--stamp);
+    color:#fdf6ea;
+    border:none;
+    border-radius:7px;
+    padding:8px 10px;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-weight:600;
+    font-size:.78rem;
+    cursor:pointer;
+  }
+  .answer-btn:hover{ filter:brightness(1.08); }
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(10,12,16,.55);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    z-index:20;
+  }
+  .overlay[hidden]{ display:none; }
+  .sheet{
+    background:var(--paper-card);
+    color:var(--ink);
+    width:min(560px, 100%);
+    max-height:88vh;
+    overflow-y:auto;
+    border-radius:14px;
+    border:1px solid var(--line);
+    padding:24px 24px 20px;
+    position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  .modal-close{
+    position:absolute; top:14px; right:14px;
+    background:none; border:1px solid var(--line);
+    color:var(--ink-soft);
+    width:30px; height:30px; border-radius:50%;
+    cursor:pointer;
+    font-size:1rem; line-height:1;
+  }
+  .modal-close:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .sheet-eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex; gap:8px; align-items:center;
+    margin-bottom:10px;
+  }
+  .sheet h2{
+    font-family:"Big Shoulders Display", sans-serif;
+    font-weight:800;
+    font-size:1.5rem;
+    margin:0 0 6px;
+    line-height:1.05;
+    text-wrap:balance;
+    padding-right:26px;
+  }
+  .sheet .qecho{
+    color:var(--ink-soft);
+    font-style:italic;
+    font-size:.9rem;
+    margin:0 0 16px;
+    padding-bottom:14px;
+    border-bottom:1px dashed var(--line);
+  }
+  .section-label{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--stamp);
+    margin:0 0 8px;
+  }
+  .answer-list{ list-style:none; margin:0 0 18px; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .answer-list li{
+    padding-left:16px;
+    position:relative;
+    font-size:.95rem;
+    line-height:1.45;
+  }
+  .answer-list li::before{
+    content:"";
+    position:absolute; left:0; top:.5em;
+    width:6px; height:6px;
+    background:var(--mustard);
+  }
+  .catch-box{
+    border:2px solid var(--stamp);
+    background:var(--stamp-soft);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:16px;
+    transform:rotate(-.6deg);
+  }
+  .catch-box .section-label{ margin-bottom:6px; }
+  .catch-box p{ margin:0; font-size:.92rem; line-height:1.5; }
+  .talk-box{
+    border:1px dashed var(--ink-soft);
+    border-radius:8px;
+    padding:12px 14px;
+  }
+  .talk-box .section-label{ color:var(--ink-soft); margin-bottom:6px; }
+  .talk-box p{ margin:0; font-style:italic; font-size:.92rem; line-height:1.5; }
+
+  .footer-note{
+    max-width:70ch;
+    margin:34px auto 0;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:.8rem;
+    font-family:"IBM Plex Mono", monospace;
+    letter-spacing:.02em;
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead-title">
+      <div class="eyebrow">Form AD-18 &middot; Rev. 2026 &middot; Household Edition</div>
+      <h1>The Adulting Exam</h1>
+      <div class="subtitle">Flip a card, guess before the reveal, then argue about the answer. 18 items, no studying required.</div>
+    </div>
+    <div class="scoreboard">
+      <div class="score"><span>Cleared</span><span id="scoreText">0 / 18</span></div>
+      <button class="reset-btn" id="resetBtn" type="button">&#8635; New Exam</button>
+    </div>
+  </header>
+
+  <div class="board" id="board" role="list"></div>
+
+  <div class="footer-note">No penalty for wrong guesses. Full credit for arguing convincingly.</div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <button class="modal-close" id="modalClose" type="button" aria-label="Close">&times;</button>
+    <div class="sheet-eyebrow"><span class="tag" id="sheetTag">TAG</span><span id="sheetNo">Item 00</span></div>
+    <h2 id="sheetTitle">Category</h2>
+    <p class="qecho" id="sheetQ">Question</p>
+    <div class="section-label">What's actually true</div>
+    <ul class="answer-list" id="sheetAnswer"></ul>
+    <div id="sheetCatchWrap"></div>
+    <div id="sheetTalkWrap"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DATA = [
+    { code:"ACC", cat:"Accountability & Consequences",
+      q:"Teenagers have parents and other adults to enforce rules and hold them accountable. How are adults held accountable to rules?",
+      a:["Laws and the courts — breaking them has real, enforceable penalties","Employers can discipline, demote, or fire you","Contracts create obligations a court can enforce","Social consequences — reputation, trust, relationships","Credit scores track financial trustworthiness for years","Licenses (driver's, professional) can be suspended or revoked"] },
+    { code:"ACC", cat:"Accountability & Consequences",
+      q:"What happens if an adult doesn't pay a bill on time?",
+      a:["Late fees get added automatically","It can be reported and damage your credit score","The account may go to collections","Utilities or services can be cut off","In serious cases: wage garnishment, repossession, or a lawsuit"] },
+    { code:"ACC", cat:"Accountability & Consequences",
+      q:"Can a boss fire you for any reason? What can't they fire you for?",
+      a:["Most jobs are “at-will” — you can be let go for almost any reason, or none at all","Illegal exceptions: discrimination (race, sex, age, disability, religion)","Illegal exceptions: retaliation for reporting misconduct or filing a complaint","Illegal exceptions: exercising a legal right, like approved medical leave or jury duty"] },
+    { code:"ADU", cat:"Becoming an Adult",
+      q:"At 18 you're legally an adult. What characteristics beyond age would you need to demonstrate to actually be considered one?",
+      a:["Responsibility — keeping commitments and owning mistakes without excuses","Self-sufficiency — managing money, daily needs, and problems on your own","Emotional maturity — regulating feelings and delaying gratification","Social maturity — empathy, honoring boundaries, direct communication","Judgment — weighing consequences and knowing when to ask for help"] },
+    { code:"MNY", cat:"Money",
+      q:"What's the difference between a debit card and a credit card?",
+      a:["Debit pulls money straight from your bank account — you can only spend what's there","Credit is borrowed money from the card issuer","Carry a credit balance and you pay interest on it","Credit history from responsible use builds your credit score; debit doesn't"] },
+    { code:"MNY", cat:"Money",
+      q:"If you make $20 an hour, is that the same as $20 an hour after taxes?",
+      a:["No — federal and state income tax come out first","FICA (Social Security + Medicare) is also withheld","What's left is “net” or take-home pay, not “gross” pay","Take-home is often noticeably less than the advertised rate"] },
+    { code:"MNY", cat:"Money",
+      q:"What's a security deposit, and do you get it back?",
+      a:["Money paid upfront to cover potential damage or unpaid rent","Landlords must return it by law, usually within 2–4 weeks of move-out","Deductions must be for documented damage, not normal wear and tear","Photograph the unit on move-in day to protect yourself"] },
+    { code:"HOU", cat:"Housing & Independence",
+      q:"What's on a lease that people often skip reading?",
+      a:["Auto-renewal terms and how much notice you owe to leave","Early termination penalties","Who's responsible for repairs and maintenance","Subletting rules and pet policies","How and when rent can be increased"] },
+    { code:"HOU", cat:"Housing & Independence",
+      q:"What's renter's insurance, and why would you want it?",
+      a:["Covers your belongings against theft, fire, and similar damage","Covers liability if a guest gets hurt in your home","The landlord's insurance only covers the building — never your stuff","Often costs less per month than a single streaming subscription"] },
+    { code:"WRK", cat:"Work",
+      q:"What's the difference between being an employee and being an independent contractor?",
+      a:["Employees have a set schedule and taxes withheld automatically by the employer","Employers control how and when an employee does the work","Contractors work independently and are paid for a deliverable, not a schedule","Contractors handle their own taxes — and usually their own benefits"] },
+    { code:"WRK", cat:"Work",
+      q:"What is “at-will employment”?",
+      a:["Either the employer or the employee can end the job at any time","No specific reason has to be given, in most cases","Exceptions exist for illegal reasons: discrimination or retaliation","Some contracts and union jobs override at-will terms"] },
+    { code:"WRK", cat:"Work",
+      q:"What kinds of conversations should you be prepared to have with your boss at work?",
+      a:["Status updates — reporting progress before you're asked","Asking for help — before a problem gets bigger","Negotiating — raises, promotions, schedule, workload","Owning a mistake — telling them before they find out another way","Respectful pushback on a decision or direction","Time-off requests, planned ahead","Setting boundaries — declining extra work, protecting personal time"],
+      nuance:"Most people guess “asking for a raise” or “calling in sick.” The real skill is realizing silence is worse than any of these conversations — waiting too long to flag a problem, ask for help, or admit a mistake damages trust more than the mistake itself.",
+      talk:"What makes a conversation with a boss different from one with a friend or parent — timing, tone, documentation, or knowing when to put something in writing?" },
+    { code:"HLT", cat:"Health & Insurance",
+      q:"What's a deductible?",
+      a:["The amount you pay out of pocket before insurance starts covering costs","Resets every plan year, usually annually","Higher deductible plans often have lower monthly premiums"] },
+    { code:"HLT", cat:"Health & Insurance",
+      q:"Why might an ER visit cost way more than you'd guess?",
+      a:["The facility, the doctor, and each test are often billed separately","Insurance may cover less if the ER or a specific doctor is “out of network”","Costs before you've hit your deductible fall on you first","A single visit can trigger several unrelated bills weeks later"] },
+    { code:"CIV", cat:"Civic Life",
+      q:"What's the difference between a misdemeanor and a felony?",
+      a:["Misdemeanors are less serious — usually fines or under a year in jail","Felonies are more serious — over a year in prison","A felony can carry lasting consequences: lost voting rights, job barriers","What counts as which varies somewhat by state"] },
+    { code:"CIV", cat:"Civic Life",
+      q:"You get a jury summons in the mail. What is it, and what makes someone a good juror?",
+      a:["A legal obligation to serve if selected, to decide facts in a case","Eligibility varies by state — often excludes non-citizens and some felons","Good jurors: open-mindedness and setting aside personal bias","Good jurors: patience and a willingness to actually deliberate","Most jurisdictions allow deferrals for hardship — not permanent exemptions"],
+      nuance:"Most people try to get out of jury duty, but it's one of the few times an ordinary citizen holds real power over someone else's freedom, custody, or finances. The best juror isn't the smartest person in the room — it's the one who can say “I don't know yet” and change their mind when new evidence shows up.",
+      talk:"Would you want a jury of people just like you deciding your fate — or people very different from you? Why?" },
+    { code:"SOC", cat:"Social Rules",
+      q:"Kids aren't allowed to swear, but adults do it all the time — and kids swear anyway when no adults are around. What's actually going on?",
+      a:["Adults are teaching social calibration — the same word lands differently depending on audience and setting","Adults aren't free of the rule either — a lawyer doesn't swear in court, a teacher doesn't in class","Kids testing it out unsupervised is practicing judgment in a lower-stakes moment","The rule was never really “don't swear” — it's “read the room”"],
+      nuance:"Almost no adult rule is really “never do X.” It's “know when X is appropriate, and own the consequences if you read it wrong.” Swearing is just the easiest example to test as a kid.",
+      talk:"What's another rule that seems like “never do this” but is actually “know when this is okay”?" },
+    { code:"PER", cat:"Perspective",
+      q:"What can adults do that teenagers are envious of? And what can teenagers do that adults are envious of?",
+      a:["Teens envy: freedom to decide, driving, financial independence, being taken seriously","Adults envy: fewer responsibilities, more free time, physical energy","Adults envy: a still-forming identity — more room to change paths","Adults envy: lower stakes — a bad grade isn't a bad credit score"],
+      nuance:"Most of what teens envy about adulthood (freedom) comes bundled with what adults envy about being a teen (fewer consequences) — you don't get one without giving up the other.",
+      talk:"Which trade would you actually take — more freedom with more consequences, or more safety with less control? Why?" }
+  ];
+
+  var cleared = {};
+  try {
+    cleared = JSON.parse(localStorage.getItem("adultingExamCleared") || "{}");
+  } catch(e) { cleared = {}; }
+
+  var board = document.getElementById("board");
+  var scoreText = document.getElementById("scoreText");
+  var overlay = document.getElementById("overlay");
+  var lastFocused = null;
+
+  function saveCleared(){
+    try { localStorage.setItem("adultingExamCleared", JSON.stringify(cleared)); } catch(e) {}
+  }
+
+  function updateScore(){
+    var n = Object.keys(cleared).filter(function(k){ return cleared[k]; }).length;
+    scoreText.textContent = n + " / " + DATA.length;
+  }
+
+  function buildCard(item, idx){
+    var id = "c" + idx;
+    var card = document.createElement("div");
+    card.className = "card";
+    card.setAttribute("role", "listitem");
+    card.tabIndex = 0;
+    card.dataset.id = id;
+
+    var isCleared = !!cleared[id];
+
+    card.innerHTML =
+      '<div class="card-inner">' +
+        '<div class="face face-back' + (isCleared ? ' is-cleared' : '') + '">' +
+          '<div class="face-row"><span class="tag">' + item.code + '</span><span class="item-no code">No. ' + String(idx+1).padStart(2,"0") + '</span></div>' +
+          '<div class="glyph"><span class="qmark">?</span>' + (isCleared ? '<span class="stamp-cleared">CLEARED</span>' : '') + '</div>' +
+          '<div class="perforation">Adulting License Exam</div>' +
+        '</div>' +
+        '<div class="face face-front">' +
+          '<div class="face-row"><span class="tag">' + item.code + '</span><span class="item-no code">No. ' + String(idx+1).padStart(2,"0") + '</span></div>' +
+          '<div class="qlabel">Q &middot; ' + item.cat + '</div>' +
+          '<div class="qtext">' + item.q + '</div>' +
+          '<button class="answer-btn" type="button" data-idx="' + idx + '">Reveal Answer</button>' +
+        '</div>' +
+      '</div>';
+
+    function toggleFlip(){
+      card.classList.toggle("flipped");
+    }
+    card.addEventListener("click", function(e){
+      if (e.target.closest(".answer-btn")) return;
+      toggleFlip();
+    });
+    card.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){
+        if (document.activeElement === card){ e.preventDefault(); toggleFlip(); }
+      }
+    });
+    card.querySelector(".answer-btn").addEventListener("click", function(e){
+      e.stopPropagation();
+      openSheet(idx);
+    });
+
+    return card;
+  }
+
+  DATA.forEach(function(item, idx){
+    board.appendChild(buildCard(item, idx));
+  });
+  updateScore();
+
+  function openSheet(idx){
+    var item = DATA[idx];
+    var id = "c" + idx;
+    lastFocused = document.activeElement;
+
+    document.getElementById("sheetTag").textContent = item.code;
+    document.getElementById("sheetNo").textContent = "Item " + String(idx+1).padStart(2,"0");
+    document.getElementById("sheetTitle").textContent = item.cat;
+    document.getElementById("sheetQ").textContent = item.q;
+
+    var list = document.getElementById("sheetAnswer");
+    list.innerHTML = "";
+    item.a.forEach(function(line){
+      var li = document.createElement("li");
+      li.textContent = line;
+      list.appendChild(li);
+    });
+
+    var catchWrap = document.getElementById("sheetCatchWrap");
+    catchWrap.innerHTML = item.nuance ?
+      '<div class="catch-box"><div class="section-label">The catch</div><p>' + item.nuance + '</p></div>' : "";
+
+    var talkWrap = document.getElementById("sheetTalkWrap");
+    talkWrap.innerHTML = item.talk ?
+      '<div class="talk-box"><div class="section-label">Talk it over</div><p>' + item.talk + '</p></div>' : "";
+
+    overlay.hidden = false;
+    document.getElementById("modalClose").focus();
+
+    cleared[id] = true;
+    saveCleared();
+    updateScore();
+    var backFace = board.children[idx].querySelector(".face-back");
+    backFace.classList.add("is-cleared");
+    if (!backFace.querySelector(".stamp-cleared")){
+      var stamp = document.createElement("span");
+      stamp.className = "stamp-cleared";
+      stamp.textContent = "CLEARED";
+      backFace.querySelector(".glyph").appendChild(stamp);
+    }
+  }
+
+  function closeSheet(){
+    overlay.hidden = true;
+    if (lastFocused) lastFocused.focus();
+  }
+
+  document.getElementById("modalClose").addEventListener("click", closeSheet);
+  overlay.addEventListener("click", function(e){
+    if (e.target === overlay) closeSheet();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && !overlay.hidden) closeSheet();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    cleared = {};
+    saveCleared();
+    updateScore();
+    Array.prototype.forEach.call(board.children, function(card){
+      card.classList.remove("flipped");
+      var back = card.querySelector(".face-back");
+      back.classList.remove("is-cleared");
+      var stamp = back.querySelector(".stamp-cleared");
+      if (stamp) stamp.remove();
+    });
+  });
+})();
+</script>
