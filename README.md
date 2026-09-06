@@ -45,6 +45,8 @@ A board of exam-card-styled tiles, each hiding a question about money, work, civ
 | Grade the answer     | Click **Sus** or **Solid**      |
 | Change a grade       | Click the other button anytime  |
 | Clear a grade         | Click the **×** on the stamp    |
+| Toggle music          | Click the speaker icon          |
+| Adjust volume         | Drag the volume slider          |
 | Start a new round     | Click **Reset Board**           |
 
 ## Features
@@ -54,6 +56,7 @@ A board of exam-card-styled tiles, each hiding a question about money, work, civ
 - **Re-gradable stamps** — the Sus/Solid verdict is a bold lightbox stamp over the card, changeable or clearable anytime.
 - **Landscape board** — wide cards, capped at three per row, reflowing down to one on mobile.
 - **Light/dark aware** — theme colors follow the system preference automatically.
+- **Live background music** — a deadpan office-loop track synthesized on the fly with the Web Audio API, no audio files. Muted by default; a speaker icon and volume slider sit next to the score.
 - **Editable question bank** — every question lives in one JS array in `index.html`, easy to add, remove, or re-word.
 
 ## Running it
@@ -83,6 +86,7 @@ This repo is set up to be served directly:
 ## Tech
 
 - **Vanilla JavaScript** — zero libraries, zero build tooling.
+- **Web Audio API** for the background music loop — no audio files.
 - **CSS custom properties** for theming, with automatic light/dark mode support.
 - **Google Fonts** — Big Shoulders Display + IBM Plex Sans / Mono.
 - **`localStorage`** to save grades between sessions.
