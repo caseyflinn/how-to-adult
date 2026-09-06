@@ -129,8 +129,31 @@
     cursor:pointer;
   }
   .reset-btn:hover{ border-color:var(--ink-soft); color:var(--ink); }
-  .reset-btn:focus-visible, .card:focus-visible, .grade-btn:focus-visible{
+  .reset-btn:focus-visible, .card:focus-visible, .grade-btn:focus-visible, .mute-btn:focus-visible{
     outline:3px solid var(--focus); outline-offset:2px;
+  }
+
+  .sound-ctrl{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:6px 10px;
+  }
+  .mute-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:1.05rem;
+    line-height:1;
+    cursor:pointer;
+    padding:2px;
+  }
+  .mute-btn:hover{ color:var(--ink); }
+  .sound-ctrl input[type="range"]{
+    width:80px;
+    accent-color:var(--mustard);
   }
 
   .board{
@@ -308,6 +331,10 @@
     <div class="scoreboard">
       <div class="score score-solid"><span>Solid</span><span id="solidCount">0</span></div>
       <div class="score score-sus"><span>Sus</span><span id="susCount">0</span></div>
+      <div class="sound-ctrl">
+        <button class="mute-btn" id="muteBtn" type="button" aria-pressed="false" aria-label="Unmute background music">&#128263;</button>
+        <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.45" aria-label="Music volume">
+      </div>
       <button class="reset-btn" id="resetBtn" type="button">&#8635; Reset Board</button>
     </div>
   </header>
@@ -318,61 +345,55 @@
 <script>
 (function(){
   var DATA = [
-    { code:"ACC", cat:"Accountability & Consequences",
-      q:"Teenagers have parents and other adults to enforce rules and hold them accountable. How are adults held accountable to rules?",
-      a:["Laws and the courts — breaking them has real, enforceable penalties","Employers can discipline, demote, or fire you","Contracts create obligations a court can enforce","Social consequences — reputation, trust, relationships","Credit scores track financial trustworthiness for years","Licenses (driver's, professional) can be suspended or revoked"] },
-    { code:"ACC", cat:"Accountability & Consequences",
-      q:"What happens when an adult doesn't have a parent to bail them out of a bad decision?",
-      a:["The consequence lands on them directly — no one absorbs it first","They have to find their own fix: a payment plan, a lawyer, a favor from a friend","Some safety nets still exist — credit counseling, legal aid, employee assistance programs","Not having a bailout is part of what forces the judgment to improve"] },
-    { code:"ADU", cat:"Becoming an Adult",
-      q:"At 18 you're legally an adult. What characteristics beyond age would you need to demonstrate to actually be considered one?",
-      a:["Responsibility — keeping commitments and owning mistakes without excuses","Self-sufficiency — managing money, daily needs, and problems on your own","Emotional maturity — regulating feelings and delaying gratification","Social maturity — empathy, honoring boundaries, direct communication","Judgment — weighing consequences and knowing when to ask for help"] },
-    { code:"ADU", cat:"Becoming an Adult",
-      q:"What's a rule a teenager has to follow that stops applying the moment they become an adult?",
-      a:["Curfews set by parents or, in some places, by law","School attendance requirements","Needing a parent's signature or permission for major decisions","Content restrictions — movies, purchases, some travel"] },
-    { code:"ADU", cat:"Becoming an Adult",
-      q:"What responsibilities do teenagers have that remain the same when they become adults?",
-      a:["Being honest even when a lie would be easier","Showing up on time and following through on commitments","Taking care of your own body — sleep, food, hygiene","Treating other people with basic respect","Owning your mistakes instead of blaming someone else"],
-      nuance:"Most of what changes about adulthood is the stakes and the scale, not the substance. The core responsibilities — honesty, follow-through, self-care, respect, ownership — are the same ones a teenager is already supposed to be practicing. Adulthood doesn't introduce new values; it just removes the safety net if you skip them.",
-      talk:"Which of these do you feel like you've already got a handle on, and which one is still hardest for you right now?" },
-    { code:"CIV", cat:"Civic Life",
-      q:"What is jury duty? Why do you have to be an adult to sit on a jury?",
-      a:["A legal obligation to serve if selected, to decide facts in a case","Eligibility varies by state — often excludes non-citizens and some felons","Good jurors: open-mindedness and setting aside personal bias","Good jurors: patience and a willingness to actually deliberate","Most jurisdictions allow deferrals for hardship — not permanent exemptions"],
-      nuance:"Most people try to get out of jury duty, but it's one of the few times an ordinary citizen holds real power over someone else's freedom, custody, or finances. The best juror isn't the smartest person in the room — it's the one who can say “I don't know yet” and change their mind when new evidence shows up.",
-      talk:"Would you want a jury of people just like you deciding your fate — or people very different from you? Why?" },
-    { code:"CIV", cat:"Civic Life",
-      q:"Why do adults get to vote to have a say in laws, but teenagers don't get a vote at all?",
-      a:["Voting age is set by law — 18 in the U.S. — as a line for full civic participation","The reasoning: legal adulthood is when you're bound by the laws you'd be voting on","Critics argue the line is arbitrary — some teenagers are more informed than some adults","A few places let 16-year-olds vote in local elections as a test case"] },
-    { code:"CIV", cat:"Civic Life",
-      q:"Just because something isn't illegal doesn't mean it's a good idea — how is a teenager supposed to tell the difference?",
-      a:["Legal just means the government won't punish you — it says nothing about the actual risk","Ask: who could get hurt, and what happens to trust if this goes wrong?","Adults use judgment, not just the law, to decide what's actually smart","Some of the worst financial and relationship mistakes are perfectly legal"],
-      nuance:"A teenager often uses “is it illegal?” as the only test, because that's the test that's been enforced on them their whole life. Adults use a second test most teenagers haven't been taught yet: “is it smart?” — and those two answers frequently point in different directions.",
-      talk:"What's something that's totally legal but that you'd still consider a bad idea? What makes it a bad idea if not the law?" },
-    { code:"SOC", cat:"Social Rules",
-      q:"Kids aren't allowed to swear, but adults do it all the time; and kids swear anyway when no adults are around. Why does it work like this?",
-      a:["Adults are teaching social calibration — the same word lands differently depending on audience and setting","Adults aren't free of the rule either — a lawyer doesn't swear in court, a teacher doesn't in class","Kids testing it out unsupervised is practicing judgment in a lower-stakes moment","The rule was never really “don't swear” — it's “read the room”"],
-      nuance:"Almost no adult rule is really “never do X.” It's “know when X is appropriate, and own the consequences if you read it wrong.” Swearing is just the easiest example to test as a kid.",
-      talk:"What's another rule that seems like “never do this” but is actually “know when this is okay”?" },
-    { code:"PER", cat:"Perspective",
-      q:"Why does a teenager's mistake often get written off as “just a phase,” while an adult's identical mistake gets read as a character flaw?",
-      a:["Adults are assumed to already know better, so the same act reads as a choice, not a phase","Teenagers get more slack because their judgment is still developing — legally and biologically","An adult's mistake has fewer built-in excuses left to reach for","The stakes are usually higher for an adult, so the same act causes more real damage"],
-      nuance:"The line isn't really about the mistake itself — it's about how much benefit of the doubt someone has left to spend. Teenagers have a large reserve of “still figuring it out” to draw on; adults have mostly spent theirs, so the same misstep gets read as who they are instead of a stage they're in.",
-      talk:"Do you think that's fair — should the same mistake really be judged differently depending on someone's age? Why or why not?" },
     { code:"PER", cat:"Perspective",
       q:"What can adults do that teenagers are envious of? And what can teenagers do that adults are envious of?",
       a:["Teens envy: freedom to decide, driving, financial independence, being taken seriously","Adults envy: fewer responsibilities, more free time, physical energy","Adults envy: a still-forming identity — more room to change paths","Adults envy: lower stakes — a bad grade isn't a bad credit score"],
       nuance:"Most of what teens envy about adulthood (freedom) comes bundled with what adults envy about being a teen (fewer consequences) — you don't get one without giving up the other.",
       talk:"Which trade would you actually take — more freedom with more consequences, or more safety with less control? Why?" },
-    { code:"PER", cat:"Perspective",
-      q:"Why is asking for help easier for a teenager than it often is for an adult?",
-      a:["A teenager is expected to still be learning, so asking looks normal, not weak","Adults worry asking will be read as incompetence rather than growth","There are fewer built-in people whose job it is to help an adult — no teacher, no parent on call","Admitting you don't know something gets harder to say the older you get, even though it's just as true"],
-      nuance:"The willingness to ask for help doesn't actually get harder to justify with age — it gets harder to say out loud, because the assumption flips from “still learning” to “should already know.” The skill worth keeping from being a teenager is asking anyway.",
-      talk:"Is there something right now you'd want help with but haven't asked for? What's stopping you?" },
+    { code:"ACC", cat:"Accountability & Consequences",
+      q:"What happens when an adult doesn't have a parent to bail them out of a bad decision?",
+      a:["The consequence lands on them directly — no one absorbs it first","They have to find their own fix: a payment plan, a lawyer, a favor from a friend","Some safety nets still exist — credit counseling, legal aid, employee assistance programs","Not having a bailout is part of what forces the judgment to improve"] },
     { code:"PER", cat:"Perspective",
       q:"What's a risk worth taking as a teenager that gets a lot riskier once you're an adult?",
       a:["Trying a career path or major that might not work out","Moving somewhere new without a guaranteed plan","Starting a business or creative project with no track record yet","Failing publicly at something — the stakes and the audience are both smaller now"],
       nuance:"Almost every “take the leap” risk gets more expensive with age, because adulthood adds dependents, debt, and a reputation to protect. The window where a risk is genuinely cheap to take is narrower than it feels from the inside — which is exactly why it's worth taking some of them now.",
       talk:"What's a risk you'd take right now if you knew it definitely wouldn't be held against you later?" },
+    { code:"ADU", cat:"Becoming an Adult",
+      q:"What responsibilities do teenagers have that remain the same when they become adults?",
+      a:["Being honest even when a lie would be easier","Showing up on time and following through on commitments","Taking care of your own body — sleep, food, hygiene","Treating other people with basic respect","Owning your mistakes instead of blaming someone else"],
+      nuance:"Most of what changes about adulthood is the stakes and the scale, not the substance. The core responsibilities — honesty, follow-through, self-care, respect, ownership — are the same ones a teenager is already supposed to be practicing. Adulthood doesn't introduce new values; it just removes the safety net if you skip them.",
+      talk:"Which of these do you feel like you've already got a handle on, and which one is still hardest for you right now?" },
+    { code:"PER", cat:"Perspective",
+      q:"Why does a teenager's mistake often get written off as “just a phase,” while an adult's identical mistake gets read as a character flaw?",
+      a:["Adults are assumed to already know better, so the same act reads as a choice, not a phase","Teenagers get more slack because their judgment is still developing — legally and biologically","An adult's mistake has fewer built-in excuses left to reach for","The stakes are usually higher for an adult, so the same act causes more real damage"],
+      nuance:"The line isn't really about the mistake itself — it's about how much benefit of the doubt someone has left to spend. Teenagers have a large reserve of “still figuring it out” to draw on; adults have mostly spent theirs, so the same misstep gets read as who they are instead of a stage they're in.",
+      talk:"Do you think that's fair — should the same mistake really be judged differently depending on someone's age? Why or why not?" },
+    { code:"CIV", cat:"Civic Life",
+      q:"Just because something isn't illegal doesn't mean it's a good idea — how is a teenager supposed to tell the difference?",
+      a:["Legal just means the government won't punish you — it says nothing about the actual risk","Ask: who could get hurt, and what happens to trust if this goes wrong?","Adults use judgment, not just the law, to decide what's actually smart","Some of the worst financial and relationship mistakes are perfectly legal"],
+      nuance:"A teenager often uses “is it illegal?” as the only test, because that's the test that's been enforced on them their whole life. Adults use a second test most teenagers haven't been taught yet: “is it smart?” — and those two answers frequently point in different directions.",
+      talk:"What's something that's totally legal but that you'd still consider a bad idea? What makes it a bad idea if not the law?" },
+    { code:"PER", cat:"Perspective",
+      q:"Why is asking for help easier for a teenager than it often is for an adult?",
+      a:["A teenager is expected to still be learning, so asking looks normal, not weak","Adults worry asking will be read as incompetence rather than growth","There are fewer built-in people whose job it is to help an adult — no teacher, no parent on call","Admitting you don't know something gets harder to say the older you get, even though it's just as true"],
+      nuance:"The willingness to ask for help doesn't actually get harder to justify with age — it gets harder to say out loud, because the assumption flips from “still learning” to “should already know.” The skill worth keeping from being a teenager is asking anyway.",
+      talk:"Is there something right now you'd want help with but haven't asked for? What's stopping you?" },
+    { code:"ACC", cat:"Accountability & Consequences",
+      q:"Teenagers have parents and other adults to enforce rules and hold them accountable. How are adults held accountable to rules?",
+      a:["Laws and the courts — breaking them has real, enforceable penalties","Employers can discipline, demote, or fire you","Contracts create obligations a court can enforce","Social consequences — reputation, trust, relationships","Credit scores track financial trustworthiness for years","Licenses (driver's, professional) can be suspended or revoked"] },
+    { code:"ADU", cat:"Becoming an Adult",
+      q:"At 18 you're legally an adult. What characteristics beyond age would you need to demonstrate to actually be considered one?",
+      a:["Responsibility — keeping commitments and owning mistakes without excuses","Self-sufficiency — managing money, daily needs, and problems on your own","Emotional maturity — regulating feelings and delaying gratification","Social maturity — empathy, honoring boundaries, direct communication","Judgment — weighing consequences and knowing when to ask for help"] },
+    { code:"CIV", cat:"Civic Life",
+      q:"What is jury duty? Why do you have to be an adult to sit on a jury?",
+      a:["A legal obligation to serve if selected, to decide facts in a case","Eligibility varies by state — often excludes non-citizens and some felons","Good jurors: open-mindedness and setting aside personal bias","Good jurors: patience and a willingness to actually deliberate","Most jurisdictions allow deferrals for hardship — not permanent exemptions"],
+      nuance:"Most people try to get out of jury duty, but it's one of the few times an ordinary citizen holds real power over someone else's freedom, custody, or finances. The best juror isn't the smartest person in the room — it's the one who can say “I don't know yet” and change their mind when new evidence shows up.",
+      talk:"Would you want a jury of people just like you deciding your fate — or people very different from you? Why?" },
+    { code:"SOC", cat:"Social Rules",
+      q:"Kids aren't allowed to swear, but adults do it all the time; and kids swear anyway when no adults are around. Why does it work like this?",
+      a:["Adults are teaching social calibration — the same word lands differently depending on audience and setting","Adults aren't free of the rule either — a lawyer doesn't swear in court, a teacher doesn't in class","Kids testing it out unsupervised is practicing judgment in a lower-stakes moment","The rule was never really “don't swear” — it's “read the room”"],
+      nuance:"Almost no adult rule is really “never do X.” It's “know when X is appropriate, and own the consequences if you read it wrong.” Swearing is just the easiest example to test as a kid.",
+      talk:"What's another rule that seems like “never do this” but is actually “know when this is okay”?" },
     { code:"MNY", cat:"Money",
       q:"What do adults have to think about when it comes to money?",
       a:["Budgeting — separating fixed costs (rent, bills) from things you choose to spend on","Saving for emergencies before saving for wants","Debt and interest — borrowed money costs more the longer you carry it","Taxes coming out before you ever see your paycheck","Insurance and other costs that protect against disaster, not everyday life","Long-term saving — retirement feels distant but starts mattering immediately","Trade-offs — every dollar spent is a dollar not saved or spent elsewhere"] }
@@ -515,5 +536,109 @@
       });
     });
   });
+
+  // --- Background music: "Paper Trail" loop, synthesized with the Web Audio API ---
+  (function(){
+    var N = { F3:-16,G3:-14,A3:-12,Bb3:-11,B3:-10,
+      C4:-9,D4:-7,E4:-5,F4:-4,G4:-2,A4:0,B4:2 };
+    var STEPS = [
+      [N.D4,N.F4,N.A4], null, [N.A4+12], null,
+      [N.Bb3,N.D4,N.F4], null, [N.F4+12], null,
+      [N.C4,N.E4,N.G4], null, [N.G4+12], null,
+      [N.A3,N.C4,N.E4], null, [N.E4+12], null,
+      [N.D4,N.F4,N.A4], null, [N.A4+12], null,
+      [N.G3,N.B3,N.D4], null, [N.D4+12], null,
+      [N.C4,N.E4,N.G4], null, [N.G4+12], null,
+      [N.G3,N.B3,N.D4], null, [N.D4+12], null
+    ];
+    var BPM = 96;
+
+    var muteBtn = document.getElementById("muteBtn");
+    var volSlider = document.getElementById("volSlider");
+    var audioCtx = null, masterGain = null, stepTimer = null, stepIndex = 0;
+    var muted = true, volume = parseFloat(volSlider.value);
+
+    function ensureAudio(){
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = muted ? 0 : volume;
+      masterGain.connect(audioCtx.destination);
+    }
+
+    function freqFromSemi(s){ return 440 * Math.pow(2, s / 12); }
+
+    function pluck(semi){
+      var t0 = audioCtx.currentTime;
+      var osc = audioCtx.createOscillator();
+      osc.type = "square";
+      osc.frequency.value = freqFromSemi(semi);
+      var g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(0.12, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+      osc.connect(g); g.connect(masterGain);
+      osc.start(t0);
+      osc.stop(t0 + 0.19);
+    }
+
+    function tick(){
+      var t0 = audioCtx.currentTime;
+      var bufSize = Math.floor(audioCtx.sampleRate * 0.04);
+      var buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < bufSize; i++){ data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize); }
+      var src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      var filt = audioCtx.createBiquadFilter();
+      filt.type = "highpass"; filt.frequency.value = 5000;
+      var g = audioCtx.createGain(); g.gain.value = 0.13;
+      src.connect(filt); filt.connect(g); g.connect(masterGain);
+      src.start(t0);
+    }
+
+    function startSequencer(){
+      if (stepTimer) return;
+      var stepMs = 60000 / BPM / 2;
+      function doStep(){
+        var i = stepIndex % STEPS.length;
+        var notes = STEPS[i];
+        if (notes) notes.forEach(pluck);
+        if (i !== STEPS.length - 1) tick();
+        stepIndex++;
+      }
+      doStep();
+      stepTimer = setInterval(doStep, stepMs);
+    }
+
+    function updateMuteUI(){
+      muteBtn.innerHTML = muted ? "&#128263;" : "&#128266;";
+      muteBtn.setAttribute("aria-pressed", String(!muted));
+      muteBtn.setAttribute("aria-label", muted ? "Unmute background music" : "Mute background music");
+    }
+
+    function beginMusic(){
+      ensureAudio();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      startSequencer();
+    }
+
+    muteBtn.addEventListener("click", function(){
+      beginMusic();
+      muted = !muted;
+      masterGain.gain.value = muted ? 0 : volume;
+      updateMuteUI();
+    });
+
+    volSlider.addEventListener("input", function(){
+      volume = parseFloat(volSlider.value);
+      if (muted){ muted = false; updateMuteUI(); }
+      beginMusic();
+      masterGain.gain.value = volume;
+    });
+
+    document.addEventListener("pointerdown", beginMusic, { once:true });
+    document.addEventListener("keydown", beginMusic, { once:true });
+  })();
 })();
 </script>
